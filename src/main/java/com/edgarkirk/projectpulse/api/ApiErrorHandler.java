@@ -3,6 +3,7 @@ package com.edgarkirk.projectpulse.api;
 import com.edgarkirk.projectpulse.api.dto.response.ErrorResponse;
 import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameException;
 import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -15,8 +16,20 @@ public class ApiErrorHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException exception) {
-        FieldError fieldError = exception.getBindingResult().getFieldErrors().stream().findFirst().orElse(null);
+        FieldError fieldError = exception.getBindingResult().getFieldErrors().stream()
+                .filter(error -> "NotBlank".equals(error.getCode()))
+                .findFirst()
+                .orElseGet(() -> exception.getBindingResult().getFieldErrors().stream().findFirst().orElse(null));
         String message = fieldError == null ? "Request is invalid" : fieldError.getDefaultMessage();
+        return ResponseEntity.badRequest().body(new ErrorResponse(message));
+    }
+
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException exception) {
+        String message = exception.getConstraintViolations().stream()
+                .findFirst()
+                .map(violation -> violation.getMessage())
+                .orElse("Request is invalid");
         return ResponseEntity.badRequest().body(new ErrorResponse(message));
     }
 

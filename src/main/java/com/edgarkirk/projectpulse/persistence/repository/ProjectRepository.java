@@ -11,6 +11,10 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
     Optional<Project> findByNameIgnoreCase(String name);
 
+    boolean existsByNameIgnoreCase(String name);
+
+    List<Project> findAllByOrderByCreatedAtDesc();
+
     List<Project> findAllByOrderByCreatedAtDescIdDesc();
 
     long countByStatus(String status);
