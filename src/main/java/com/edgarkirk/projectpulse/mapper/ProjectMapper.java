@@ -9,7 +9,7 @@ public class ProjectMapper {
 
     public ProjectResponse toResponse(Project project) {
         return new ProjectResponse(
-                project.getId().toString(),
+                project.getId(),
                 project.getName(),
                 project.getOwnerName(),
                 project.getStatus(),

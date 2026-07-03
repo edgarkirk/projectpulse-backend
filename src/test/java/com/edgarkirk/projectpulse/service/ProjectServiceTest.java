@@ -34,11 +34,11 @@ class ProjectServiceTest {
     @Test
     void should_returnCreated_when_validInput() {
         given(projectRepository.findByNameIgnoreCase("Atlas Migration")).willReturn(Optional.empty());
-        given(projectRepository.save(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
+        given(projectRepository.saveAndFlush(any(Project.class))).willAnswer(invocation -> invocation.getArgument(0));
 
         ProjectResponse response = projectService.createProject(new CreateProjectRequest("Atlas Migration", "Jane Doe", "Active"));
 
-        assertThat(response.id()).isNotBlank();
+        assertThat(response.id()).isNotNull();
         assertThat(response.name()).isEqualTo("Atlas Migration");
         assertThat(response.ownerName()).isEqualTo("Jane Doe");
         assertThat(response.status()).isEqualTo("Active");
@@ -47,11 +47,11 @@ class ProjectServiceTest {
 
     @Test
     void should_return409_when_duplicateName() {
-        given(projectRepository.findByNameIgnoreCase("Atlas Migration")).willReturn(Optional.of(new Project("Atlas Migration", "Jane Doe", "Active")));
+        given(projectRepository.findByNameIgnoreCase("atlas migration")).willReturn(Optional.of(new Project("Atlas Migration", "Jane Doe", "Active")));
 
-        assertThatThrownBy(() -> projectService.createProject(new CreateProjectRequest("Atlas Migration", "Jane Doe", "Active")))
+        assertThatThrownBy(() -> projectService.createProject(new CreateProjectRequest("atlas migration", "Jane Doe", "Active")))
                 .isInstanceOf(DuplicateProjectNameException.class)
-                .hasMessage("Project name 'Atlas Migration' is already taken");
+                .hasMessage("Project name 'atlas migration' is already taken");
     }
 
     @Test
@@ -73,7 +73,7 @@ class ProjectServiceTest {
 
         ProjectResponse response = projectService.getProject(id);
 
-        assertThat(response.id()).isEqualTo(id.toString());
+        assertThat(response.id()).isEqualTo(id);
         assertThat(response.name()).isEqualTo("Atlas Migration");
     }
 

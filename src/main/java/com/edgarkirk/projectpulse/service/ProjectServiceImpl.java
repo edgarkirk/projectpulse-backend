@@ -7,6 +7,7 @@ import com.edgarkirk.projectpulse.persistence.entity.Project;
 import com.edgarkirk.projectpulse.persistence.repository.ProjectRepository;
 import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameException;
 import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -40,8 +41,12 @@ public class ProjectServiceImpl implements ProjectService {
                     throw new DuplicateProjectNameException("Project name '%s' is already taken".formatted(name));
                 });
 
-        Project savedProject = projectRepository.save(new Project(name, ownerName, status));
-        return toResponse(savedProject);
+        try {
+            Project savedProject = projectRepository.saveAndFlush(new Project(name, ownerName, status));
+            return toResponse(savedProject);
+        } catch (DataIntegrityViolationException exception) {
+            throw new DuplicateProjectNameException("Project name '%s' is already taken".formatted(name));
+        }
     }
 
     @Override
@@ -80,7 +85,7 @@ public class ProjectServiceImpl implements ProjectService {
     private ProjectResponse toResponse(Project project, UUID fallbackId) {
         UUID responseId = fallbackId != null ? fallbackId : project.getId();
         return new ProjectResponse(
-                responseId == null ? null : responseId.toString(),
+                responseId,
                 project.getName(),
                 project.getOwnerName(),
                 project.getStatus(),

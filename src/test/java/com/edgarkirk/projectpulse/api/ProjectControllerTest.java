@@ -34,7 +34,7 @@ class ProjectControllerTest {
 
     @Test
     void should_returnCreated_when_validInput() throws Exception {
-        ProjectResponse response = new ProjectResponse(UUID.randomUUID().toString(), "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-03T12:00:00Z"));
+        ProjectResponse response = new ProjectResponse(UUID.randomUUID(), "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-03T12:00:00Z"));
         given(projectService.createProject(new CreateProjectRequest("Atlas Migration", "Jane Doe", "Active"))).willReturn(response);
 
         mockMvc.perform(post("/api/projects")
@@ -43,7 +43,7 @@ class ProjectControllerTest {
                                 {"name":"Atlas Migration","ownerName":"Jane Doe","status":"Active"}
                                 """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(response.id()))
+                .andExpect(jsonPath("$.id").value(response.id().toString()))
                 .andExpect(jsonPath("$.name").value("Atlas Migration"))
                 .andExpect(jsonPath("$.ownerName").value("Jane Doe"))
                 .andExpect(jsonPath("$.status").value("Active"))
@@ -52,18 +52,18 @@ class ProjectControllerTest {
 
     @Test
     void should_returnAllItems_when_getAll() throws Exception {
-        ProjectResponse response = new ProjectResponse(UUID.randomUUID().toString(), "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-03T12:00:00Z"));
+        ProjectResponse response = new ProjectResponse(UUID.randomUUID(), "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-03T12:00:00Z"));
         given(projectService.listProjects()).willReturn(List.of(response));
 
         mockMvc.perform(get("/api/projects"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(response.id()));
+                .andExpect(jsonPath("$[0].id").value(response.id().toString()));
     }
 
     @Test
     void should_returnProject_when_projectExists() throws Exception {
         UUID id = UUID.randomUUID();
-        ProjectResponse response = new ProjectResponse(id.toString(), "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-03T12:00:00Z"));
+        ProjectResponse response = new ProjectResponse(id, "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-03T12:00:00Z"));
         given(projectService.getProject(id)).willReturn(response);
 
         mockMvc.perform(get("/api/projects/{id}", id))
