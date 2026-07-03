@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/dashboard")
 @Validated
-class DashboardController {
+public class DashboardController {
 
     private final ProjectService projectService;
 
