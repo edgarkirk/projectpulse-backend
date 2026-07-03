@@ -7,3 +7,6 @@
 - Project creation enforces case-insensitive uniqueness in both service logic and database schema.
 - Required project status values: `Active`, `At Risk`, `Blocked`, `On Hold`.
 - Validation errors should prefer `NotBlank` messages when multiple violations exist for the same field.
+- Spring Boot 3.4 tests should use `@MockitoBean` instead of deprecated `@MockBean`.
+- `@RestControllerAdvice` classes that handle validation should also carry `@Validated`.
+
