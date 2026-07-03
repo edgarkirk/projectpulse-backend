@@ -20,6 +20,6 @@ public class DashboardController {
 
     @GetMapping("/summary")
     public DashboardSummary getSummary() {
-        throw new UnsupportedOperationException("DashboardController#getSummary is not implemented yet");
+        return projectService.getDashboardSummary();
     }
 }

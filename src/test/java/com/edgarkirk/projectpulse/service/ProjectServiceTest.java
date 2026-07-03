@@ -3,16 +3,19 @@ package com.edgarkirk.projectpulse.service;
 import com.edgarkirk.projectpulse.api.dto.request.CreateProjectRequest;
 import com.edgarkirk.projectpulse.api.dto.response.DashboardSummary;
 import com.edgarkirk.projectpulse.api.dto.response.ProjectResponse;
+import com.edgarkirk.projectpulse.persistence.entity.Project;
+import com.edgarkirk.projectpulse.persistence.entity.ProjectStatus;
 import com.edgarkirk.projectpulse.persistence.repository.ProjectRepository;
+import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameException;
+import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameException;
-import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
-
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,6 +36,7 @@ class ProjectServiceTest {
     @Test
     void should_returnCreatedProject_when_validInput() {
         when(projectRepository.existsByNameIgnoreCase("Atlas Migration")).thenReturn(false);
+        when(projectRepository.save(org.mockito.ArgumentMatchers.any(Project.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ProjectResponse response = projectService.createProject(new CreateProjectRequest("Atlas Migration", "Jane Doe", "Active"));
 
@@ -42,6 +46,7 @@ class ProjectServiceTest {
         assertThat(response.status()).isEqualTo("Active");
         assertThat(response.createdAt()).isNotNull();
         verify(projectRepository).existsByNameIgnoreCase("Atlas Migration");
+        verify(projectRepository).save(org.mockito.ArgumentMatchers.any(Project.class));
     }
 
     @Test
@@ -64,6 +69,12 @@ class ProjectServiceTest {
 
     @Test
     void should_returnDashboardSummary_when_projectsExist() {
+        when(projectRepository.count()).thenReturn(6L);
+        when(projectRepository.countByStatus(ProjectStatus.ACTIVE)).thenReturn(3L);
+        when(projectRepository.countByStatus(ProjectStatus.AT_RISK)).thenReturn(2L);
+        when(projectRepository.countByStatus(ProjectStatus.BLOCKED)).thenReturn(1L);
+        when(projectRepository.countByStatus(ProjectStatus.ON_HOLD)).thenReturn(0L);
+
         DashboardSummary summary = projectService.getDashboardSummary();
 
         assertThat(summary.totalProjects()).isEqualTo(6);
@@ -75,9 +86,24 @@ class ProjectServiceTest {
 
     @Test
     void should_returnOrderedProjects_when_listingProjects() {
+        Project gamma = project("Gamma", ProjectStatus.ACTIVE, OffsetDateTime.now(ZoneOffset.UTC));
+        Project beta = project("Beta", ProjectStatus.BLOCKED, OffsetDateTime.now(ZoneOffset.UTC).minusDays(1));
+        Project alpha = project("Alpha", ProjectStatus.AT_RISK, OffsetDateTime.now(ZoneOffset.UTC).minusDays(2));
+        when(projectRepository.findAllByOrderByCreatedAtDescIdDesc()).thenReturn(List.of(gamma, beta, alpha));
+
         List<ProjectResponse> response = projectService.listProjects();
 
         assertThat(response).hasSize(3);
         assertThat(response).extracting(ProjectResponse::name).containsExactly("Gamma", "Beta", "Alpha");
+    }
+
+    private Project project(String name, ProjectStatus status, OffsetDateTime createdAt) {
+        Project project = new Project();
+        project.setId(UUID.randomUUID());
+        project.setName(name);
+        project.setOwnerName(name + " Owner");
+        project.setStatus(status);
+        project.setCreatedAt(createdAt);
+        return project;
     }
 }

@@ -1,13 +1,13 @@
 package com.edgarkirk.projectpulse.persistence.entity;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import jakarta.validation.constraints.Size;
 
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -21,13 +21,15 @@ public class Project {
     @Column(name = "id", nullable = false, updatable = false)
     private UUID id;
 
+    @Size(max = 100)
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Size(max = 100)
     @Column(name = "owner_name", nullable = false, length = 100)
     private String ownerName;
 
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = ProjectStatusConverter.class)
     @Column(name = "status", nullable = false, length = 20)
     private ProjectStatus status;
 
