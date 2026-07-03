@@ -88,6 +88,27 @@ class ProjectControllerTest {
     }
 
     @Test
+    void should_return400_when_projectIdIsNotAUuid() throws Exception {
+        mockMvc.perform(get("/api/projects/{id}", "not-a-uuid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("id must be a valid UUID"));
+    }
+
+    @Test
+    void should_not_expose_internalDetails_when_unexpectedExceptionOccurs() throws Exception {
+        when(projectService.createProject(org.mockito.ArgumentMatchers.any()))
+                .thenThrow(new RuntimeException("database password=secret"));
+
+        mockMvc.perform(post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Atlas Migration","ownerName":"Jane Doe","status":"Active"}
+                                """))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.message").value("Internal server error"));
+    }
+
+    @Test
     void should_returnProjects_when_listRequested() throws Exception {
         when(projectService.listProjects()).thenReturn(List.of(
                 new ProjectResponse(UUID.randomUUID(), "Gamma", "Owner C", "Active", OffsetDateTime.now()),
