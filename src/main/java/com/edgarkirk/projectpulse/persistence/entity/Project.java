@@ -7,14 +7,14 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
-import java.util.Objects;
 import java.util.UUID;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
-@Table(name = "projects")
+@Table(name = "projects", uniqueConstraints = @UniqueConstraint(name = "uk_projects_name", columnNames = "name"))
 @EntityListeners(AuditingEntityListener.class)
 public class Project {
 
@@ -86,6 +86,6 @@ public class Project {
 
     @Override
     public int hashCode() {
-        return Objects.hash(getClass());
+        return getClass().hashCode();
     }
 }
