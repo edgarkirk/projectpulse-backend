@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/dashboard")
 @Validated
-public class DashboardController {
+class DashboardController {
 
     private final ProjectService projectService;
 
@@ -20,10 +20,6 @@ public class DashboardController {
 
     @GetMapping("/summary")
     public DashboardSummaryResponse getSummary() {
-        throw new UnsupportedOperationException("Not implemented yet");
-    }
-
-    protected ProjectService getProjectService() {
-        return projectService;
+        return projectService.getDashboardSummary();
     }
 }

@@ -5,6 +5,6 @@ import java.util.UUID;
 public class ProjectNotFoundException extends RuntimeException {
 
     public ProjectNotFoundException(UUID id) {
-        super("project with id " + id + " was not found");
+        super("Project with id " + id + " was not found");
     }
 }
