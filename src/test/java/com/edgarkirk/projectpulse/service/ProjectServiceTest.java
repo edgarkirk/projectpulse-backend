@@ -2,6 +2,7 @@ package com.edgarkirk.projectpulse.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import com.edgarkirk.projectpulse.api.dto.request.CreateProjectRequest;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith(MockitoExtension.class)
 class ProjectServiceTest {
@@ -46,8 +48,7 @@ class ProjectServiceTest {
                 "Jane Doe",
                 "Active",
                 Instant.parse("2026-07-01T10:00:00Z"));
-        when(projectRepository.existsByNameIgnoreCase("Atlas Migration")).thenReturn(false);
-        when(projectRepository.save(org.mockito.ArgumentMatchers.any(Project.class))).thenReturn(persistedProject);
+        when(projectRepository.saveAndFlush(org.mockito.ArgumentMatchers.any(Project.class))).thenReturn(persistedProject);
 
         ProjectResponse response = projectService.createProject(createRequest);
 
@@ -59,8 +60,9 @@ class ProjectServiceTest {
     }
 
     @Test
-    void should_throwDuplicateProjectNameException_when_nameAlreadyExists() {
-        when(projectRepository.existsByNameIgnoreCase("Atlas Migration")).thenReturn(true);
+    void should_throwDuplicateProjectNameException_when_databaseRejectsCaseInsensitiveDuplicate() {
+        when(projectRepository.saveAndFlush(any(Project.class)))
+                .thenThrow(new DataIntegrityViolationException("duplicate key"));
 
         assertThatThrownBy(() -> projectService.createProject(createRequest))
                 .isInstanceOf(DuplicateProjectNameException.class)

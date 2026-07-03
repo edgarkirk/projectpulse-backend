@@ -1,6 +1,7 @@
 package com.edgarkirk.projectpulse.persistence.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.edgarkirk.projectpulse.persistence.entity.Project;
 import java.time.Instant;
@@ -8,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
@@ -32,9 +34,18 @@ class ProjectRepositoryTest {
 
     @Test
     void should_returnTrue_when_nameMatchesIgnoringCase() {
-        projectRepository.save(new Project("Atlas Migration", "Jane Doe", "Active", Instant.parse("2026-07-01T10:00:00Z")));
+        projectRepository.saveAndFlush(new Project("Atlas Migration", "Jane Doe", "Active", Instant.parse("2026-07-01T10:00:00Z")));
 
         assertThat(projectRepository.existsByNameIgnoreCase("atlas migration")).isTrue();
+    }
+
+    @Test
+    void should_rejectProjectsWithNamesThatDifferOnlyByCase_when_savedToDatabase() {
+        projectRepository.saveAndFlush(new Project("Atlas Migration", "Jane Doe", "Active", Instant.parse("2026-07-01T10:00:00Z")));
+
+        assertThatThrownBy(() -> projectRepository.saveAndFlush(
+                new Project("atlas migration", "John Doe", "Blocked", Instant.parse("2026-07-01T11:00:00Z"))))
+                .isInstanceOf(DataIntegrityViolationException.class);
     }
 
     @Test

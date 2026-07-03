@@ -9,6 +9,7 @@ import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameExceptio
 import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,16 +25,16 @@ public class ProjectService {
 
     @Transactional
     public ProjectResponse createProject(CreateProjectRequest request) {
-        if (projectRepository.existsByNameIgnoreCase(request.name())) {
+        try {
+            Project savedProject = projectRepository.saveAndFlush(new Project(
+                    request.name(),
+                    request.ownerName(),
+                    request.status(),
+                    null));
+            return toResponse(savedProject);
+        } catch (DataIntegrityViolationException exception) {
             throw new DuplicateProjectNameException(request.name());
         }
-
-        Project savedProject = projectRepository.save(new Project(
-                request.name(),
-                request.ownerName(),
-                request.status(),
-                null));
-        return toResponse(savedProject);
     }
 
     public List<ProjectResponse> getAllProjects() {
