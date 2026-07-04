@@ -10,6 +10,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.validation.annotation.Validated;
 
 import com.edgarkirk.projectpulse.api.dto.response.ErrorResponse;
 import com.edgarkirk.projectpulse.service.DuplicateProjectNameException;
@@ -17,6 +18,7 @@ import com.edgarkirk.projectpulse.service.ProjectNotFoundException;
 
 import jakarta.validation.ConstraintViolationException;
 
+@Validated
 @RestControllerAdvice
 class GlobalExceptionHandler {
 
