@@ -10,19 +10,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.edgarkirk.projectpulse.persistence.repository.ProjectRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-@SpringBootTest(classes = ProjectPulseTestApplication.class)
+@SpringBootTest(classes = ProjectPulseApplication.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class ProjectAcceptanceTest {
@@ -36,6 +38,14 @@ class ProjectAcceptanceTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @BeforeEach
+    void clearProjects() {
+        projectRepository.deleteAll();
+    }
 
     @Test
     void should_createProject_whenRequestIsValid() throws Exception {

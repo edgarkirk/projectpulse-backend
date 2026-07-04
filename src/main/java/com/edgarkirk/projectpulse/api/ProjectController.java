@@ -1,0 +1,53 @@
+package com.edgarkirk.projectpulse.api;
+
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.edgarkirk.projectpulse.api.dto.request.CreateProjectRequest;
+import com.edgarkirk.projectpulse.api.dto.response.DashboardSummary;
+import com.edgarkirk.projectpulse.api.dto.response.ProjectResponse;
+import com.edgarkirk.projectpulse.service.ProjectService;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api")
+@Validated
+class ProjectController {
+
+    private final ProjectService projectService;
+
+    ProjectController(ProjectService projectService) {
+        this.projectService = projectService;
+    }
+
+    @PostMapping("/projects")
+    ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody CreateProjectRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(projectService.createProject(request));
+    }
+
+    @GetMapping("/projects")
+    List<ProjectResponse> getProjects() {
+        return projectService.getAllProjects();
+    }
+
+    @GetMapping("/projects/{id}")
+    ProjectResponse getProjectById(@PathVariable UUID id) {
+        return projectService.getProjectById(id);
+    }
+
+    @GetMapping("/dashboard/summary")
+    DashboardSummary getDashboardSummary() {
+        return projectService.getDashboardSummary();
+    }
+}

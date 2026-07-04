@@ -8,11 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.context.ActiveProfiles;
 
-@DataJpaTest
-@ActiveProfiles("test")
 class ProjectRepositoryTest {
 
     private static final String PROJECT_ENTITY_FQCN = "com.edgarkirk.projectpulse.persistence.entity.Project";
@@ -46,7 +42,7 @@ class ProjectRepositoryTest {
     @Test
     void should_expose_projectLookup_byId() {
         Class<?> repositoryType = requireClass(PROJECT_REPOSITORY_FQCN);
-        Method method = requireMethod(repositoryType, "findById", UUID.class);
+        Method method = requireMethod(repositoryType, "findById", Object.class);
 
         assertThat(method.getReturnType()).isEqualTo(Optional.class);
     }

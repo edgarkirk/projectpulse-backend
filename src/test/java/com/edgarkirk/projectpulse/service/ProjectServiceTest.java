@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Locale;
@@ -72,7 +73,7 @@ class ProjectServiceTest {
     @Test
     void should_returnProject_whenIdExists() {
         UUID id = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
-        Object entity = newProjectEntity(id, "Atlas Migration", "Jane Doe", "Active", OffsetDateTime.parse("2026-07-04T20:00:00Z"));
+        Object entity = newProjectEntity(id, "Atlas Migration", "Jane Doe", "Active", Instant.parse("2026-07-04T20:00:00Z"));
         Object service = instantiateService(repositoryAnswerContext(false, entity, List.of(entity), Map.of("Active", 1L)));
 
         Object response = invokeFirstMatchingMethod(service,
@@ -164,10 +165,12 @@ class ProjectServiceTest {
         }
     }
 
-    private static Object newProjectEntity(UUID id, String name, String ownerName, String status, OffsetDateTime createdAt) {
+    private static Object newProjectEntity(UUID id, String name, String ownerName, String status, Instant createdAt) {
         Class<?> entityType = requireClass(ENTITY_FQCN);
         try {
-            Object entity = entityType.getDeclaredConstructor().newInstance();
+            Constructor<?> constructor = entityType.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            Object entity = constructor.newInstance();
             setField(entity, "id", id);
             setField(entity, "name", name);
             setField(entity, "ownerName", ownerName);
@@ -276,7 +279,7 @@ class ProjectServiceTest {
                 case "save" -> invocation.getArgument(0);
                 case "findById" -> Optional.ofNullable(projectById);
                 case "findAllByOrderByCreatedAtDesc" -> orderedProjects;
-                case "countByStatus" -> counts.getOrDefault(String.valueOf(invocation.getArgument(0)), 0L);
+                case "countByStatus" -> counts.getOrDefault(String.valueOf((Object) invocation.getArgument(0)), 0L);
                 default -> defaultReturnValue(invocation.getMethod().getReturnType());
             };
         }

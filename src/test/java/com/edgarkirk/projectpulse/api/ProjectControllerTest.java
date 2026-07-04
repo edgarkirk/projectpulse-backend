@@ -1,19 +1,28 @@
 package com.edgarkirk.projectpulse.api;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest
+import com.edgarkirk.projectpulse.service.ProjectService;
+import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameException;
+import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
+
+@WebMvcTest(ProjectController.class)
 @ActiveProfiles("test")
 class ProjectControllerTest {
 
@@ -28,8 +37,13 @@ class ProjectControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @MockitoBean
+    private ProjectService projectService;
+
     @Test
     void should_returnConflict_whenProjectNameIsDuplicate() throws Exception {
+        when(projectService.createProject(any())).thenThrow(new DuplicateProjectNameException("Project name 'Atlas Migration' is already taken."));
+
         mockMvc.perform(post("/api/projects")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(VALID_PROJECT_BODY))
@@ -132,7 +146,10 @@ class ProjectControllerTest {
 
     @Test
     void should_returnNotFound_whenProjectDoesNotExist() throws Exception {
-        mockMvc.perform(get("/api/projects/{id}", "550e8400-e29b-41d4-a716-446655440000"))
+        UUID projectId = UUID.fromString("550e8400-e29b-41d4-a716-446655440000");
+        when(projectService.getProjectById(projectId)).thenThrow(new ProjectNotFoundException(projectId));
+
+        mockMvc.perform(get("/api/projects/{id}", projectId))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message").value("Project with id 550e8400-e29b-41d4-a716-446655440000 was not found."))
