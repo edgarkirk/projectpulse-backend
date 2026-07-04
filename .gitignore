@@ -1,0 +1,9 @@
+target/**
+.mvn/**
+mvnw
+mvnw.cmd
+.github/**
+deployment/**
+k8s/**
+helm/**
+AGENTS.md
