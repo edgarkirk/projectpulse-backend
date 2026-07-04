@@ -3,6 +3,7 @@ package com.edgarkirk.projectpulse.api;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindException;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -14,7 +15,8 @@ import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
 import jakarta.validation.ConstraintViolationException;
 
 @RestControllerAdvice
-class ApiExceptionHandler {
+@Validated
+public class ApiExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException exception) {
