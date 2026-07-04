@@ -1,1 +1,2 @@
-create index idx_project_status on project (status);
+-- Case-insensitive uniqueness is enforced in V2.
+select 1;

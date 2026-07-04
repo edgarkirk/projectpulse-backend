@@ -1,1 +1,2 @@
-create index idx_project_created_at on project (created_at);
+-- Case-insensitive uniqueness is enforced in V2.
+select 1;

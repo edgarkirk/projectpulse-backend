@@ -66,6 +66,16 @@ class ProjectRepositoryTest {
     }
 
     @Test
+    void should_reject_project_names_that_differ_only_by_case_when_saving() {
+        projectRepository.saveAndFlush(new Project("Atlas Migration", "Jane Doe", "Active"));
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() ->
+                projectRepository.saveAndFlush(new Project("atlas migration", "John Doe", "Blocked")))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+    }
+
+
+    @Test
     void should_count_projects_by_status_when_aggregating_dashboard_data() {
         projectRepository.saveAndFlush(new Project("A", "Owner A", "Active"));
         projectRepository.saveAndFlush(new Project("B", "Owner B", "Active"));
