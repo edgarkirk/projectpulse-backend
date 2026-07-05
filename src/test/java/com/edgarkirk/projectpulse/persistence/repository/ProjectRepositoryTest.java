@@ -10,6 +10,7 @@ import com.edgarkirk.projectpulse.config.JpaAuditingConfig;
 import com.edgarkirk.projectpulse.persistence.entity.Project;
 import com.edgarkirk.projectpulse.persistence.entity.ProjectStatus;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import jakarta.persistence.EntityManager;
 
@@ -27,6 +28,12 @@ import org.springframework.test.context.ActiveProfiles;
 @Import(JpaAuditingConfig.class)
 @AutoConfigureTestDatabase(replace = Replace.NONE)
 class ProjectRepositoryTest {
+
+    @BeforeEach
+    void setUp() {
+        projectRepository.deleteAll();
+    }
+
 
     @Autowired
     private ProjectRepository projectRepository;
