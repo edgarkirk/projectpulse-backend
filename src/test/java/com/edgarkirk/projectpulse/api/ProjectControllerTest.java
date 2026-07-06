@@ -15,7 +15,7 @@ import com.edgarkirk.projectpulse.service.ProjectService;
 import com.edgarkirk.projectpulse.service.exception.DuplicateProjectNameException;
 import com.edgarkirk.projectpulse.service.exception.ProjectNotFoundException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -45,7 +45,7 @@ class ProjectControllerTest {
                 "Atlas Migration",
                 "Jane Doe",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z"));
+                Instant.parse("2026-07-06T12:00:00Z"));
 
         when(projectService.create(any(CreateProjectRequest.class))).thenReturn(response);
 
@@ -67,13 +67,13 @@ class ProjectControllerTest {
                 "Newest",
                 "Jane Doe",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z"));
+                Instant.parse("2026-07-06T12:00:00Z"));
         var second = new ProjectResponse(
                 UUID.fromString("22222222-2222-2222-2222-222222222222"),
                 "Older",
                 "John Smith",
                 ProjectStatus.BLOCKED,
-                OffsetDateTime.parse("2026-07-05T12:00:00Z"));
+                Instant.parse("2026-07-05T12:00:00Z"));
 
         when(projectService.listAll()).thenReturn(List.of(first, second));
 
@@ -91,7 +91,7 @@ class ProjectControllerTest {
                 "Atlas Migration",
                 "Jane Doe",
                 ProjectStatus.AT_RISK,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z"));
+                Instant.parse("2026-07-06T12:00:00Z"));
 
         when(projectService.getById(projectId)).thenReturn(response);
 
@@ -122,7 +122,7 @@ class ProjectControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").value("name is required"));
     }
 
     @Test
@@ -133,7 +133,18 @@ class ProjectControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").value("name exceeds the maximum length of 100 characters"));
+    }
+
+    @Test
+    void should_return_bad_request_when_owner_name_is_blank() throws Exception {
+        var request = new CreateProjectRequest("Atlas Migration", "", ProjectStatus.ACTIVE);
+
+        mockMvc.perform(post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("ownerName is required"));
     }
 
     @Test
@@ -144,7 +155,18 @@ class ProjectControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").value("ownerName exceeds the maximum length of 100 characters"));
+    }
+
+    @Test
+    void should_return_bad_request_when_status_is_missing() throws Exception {
+        var request = new CreateProjectRequest("Atlas Migration", "Jane Doe", null);
+
+        mockMvc.perform(post("/api/projects")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("status is required"));
     }
 
     @Test
@@ -155,7 +177,7 @@ class ProjectControllerTest {
                                 {"name":"Atlas Migration","ownerName":"Jane Doe","status":"Unsupported"}
                                 """))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").value("status must be one of Active, At Risk, Blocked, On Hold"));
     }
 
     @Test
@@ -167,6 +189,14 @@ class ProjectControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("Project not found"));
     }
+
+    @Test
+    void should_return_bad_request_when_project_id_is_not_a_uuid() throws Exception {
+        mockMvc.perform(get("/api/projects/{id}", "not-a-uuid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("id must be a valid UUID"));
+    }
+
 
     @Test
     void should_return_conflict_when_duplicate_name_exists() throws Exception {
@@ -187,17 +217,6 @@ class ProjectControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{invalid json"))
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists());
-    }
-
-    @Test
-    void should_return_bad_request_when_enum_value_is_invalid() throws Exception {
-        mockMvc.perform(post("/api/projects")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"name":"Atlas Migration","ownerName":"Jane Doe","status":"INVALID_VALUE"}
-                                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").exists());
+                .andExpect(jsonPath("$.message").value("Malformed JSON request body"));
     }
 }

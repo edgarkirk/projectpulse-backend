@@ -5,8 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.edgarkirk.projectpulse.persistence.entity.Project;
 import com.edgarkirk.projectpulse.persistence.entity.ProjectStatus;
-import java.time.OffsetDateTime;
-import java.util.UUID;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -27,13 +26,13 @@ class ProjectRepositoryTest {
                 "Older",
                 "Jane Doe",
                 ProjectStatus.BLOCKED,
-                OffsetDateTime.parse("2026-07-05T12:00:00Z"));
+                Instant.parse("2026-07-05T12:00:00Z"));
         var newer = new Project(
                 null,
                 "Newer",
                 "John Smith",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z"));
+                Instant.parse("2026-07-06T12:00:00Z"));
         projectRepository.save(older);
         projectRepository.save(newer);
         projectRepository.flush();
@@ -50,10 +49,19 @@ class ProjectRepositoryTest {
                 "Atlas Migration",
                 "Jane Doe",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z"));
+                Instant.parse("2026-07-06T12:00:00Z"));
         projectRepository.saveAndFlush(project);
 
         assertThat(projectRepository.existsByNameIgnoreCase("atlas migration")).isTrue();
+    }
+
+    @Test
+    void should_populate_created_at_when_entity_is_saved() {
+        var project = new Project(null, "Audited", "Jane Doe", ProjectStatus.ACTIVE, null);
+
+        Project savedProject = projectRepository.saveAndFlush(project);
+
+        assertThat(savedProject.getCreatedAt()).isNotNull();
     }
 
     @Test
@@ -63,19 +71,19 @@ class ProjectRepositoryTest {
                 "Project A",
                 "Jane Doe",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z")));
+                Instant.parse("2026-07-06T12:00:00Z")));
         projectRepository.save(new Project(
                 null,
                 "Project B",
                 "John Smith",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T11:00:00Z")));
+                Instant.parse("2026-07-06T11:00:00Z")));
         projectRepository.saveAndFlush(new Project(
                 null,
                 "Project C",
                 "John Smith",
                 ProjectStatus.BLOCKED,
-                OffsetDateTime.parse("2026-07-06T10:00:00Z")));
+                Instant.parse("2026-07-06T10:00:00Z")));
 
         assertThat(projectRepository.countByStatus(ProjectStatus.ACTIVE)).isEqualTo(2L);
         assertThat(projectRepository.countByStatus(ProjectStatus.BLOCKED)).isEqualTo(1L);
@@ -88,13 +96,13 @@ class ProjectRepositoryTest {
                 "Atlas Migration",
                 "Jane Doe",
                 ProjectStatus.ACTIVE,
-                OffsetDateTime.parse("2026-07-06T12:00:00Z"));
+                Instant.parse("2026-07-06T12:00:00Z"));
         var second = new Project(
                 null,
                 "Atlas Migration",
                 "John Smith",
                 ProjectStatus.BLOCKED,
-                OffsetDateTime.parse("2026-07-06T11:00:00Z"));
+                Instant.parse("2026-07-06T11:00:00Z"));
 
         projectRepository.saveAndFlush(first);
 

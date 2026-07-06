@@ -5,14 +5,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.edgarkirk.projectpulse.api.dto.request.CreateProjectRequest;
 import com.edgarkirk.projectpulse.api.dto.response.DashboardSummary;
 import com.edgarkirk.projectpulse.api.dto.response.ProjectResponse;
+import com.edgarkirk.projectpulse.persistence.entity.Project;
 import com.edgarkirk.projectpulse.persistence.entity.ProjectStatus;
+import com.edgarkirk.projectpulse.persistence.repository.ProjectRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.Instant;
 import java.util.UUID;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
@@ -30,6 +34,14 @@ class ProjectAcceptanceTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private ProjectRepository projectRepository;
+
+    @BeforeEach
+    void setUp() {
+        projectRepository.deleteAll();
+    }
+
     @Test
     void should_create_and_retrieve_project() throws Exception {
         var request = new CreateProjectRequest("Atlas Migration", "Jane Doe", ProjectStatus.ACTIVE);
@@ -43,6 +55,7 @@ class ProjectAcceptanceTest {
         ProjectResponse createdProject = objectMapper.readValue(created.getBody(), ProjectResponse.class);
         UUID projectId = createdProject.id();
         assertThat(createdProject.name()).isEqualTo("Atlas Migration");
+        assertThat(createdProject.createdAt()).isNotNull();
 
         ResponseEntity<String> fetched = restTemplate.getForEntity(
                 baseUrl() + "/api/projects/" + projectId, String.class);
@@ -51,10 +64,18 @@ class ProjectAcceptanceTest {
         assertThat(fetched.getBody()).isNotBlank();
         ProjectResponse fetchedProject = objectMapper.readValue(fetched.getBody(), ProjectResponse.class);
         assertThat(fetchedProject.id()).isEqualTo(projectId);
+        assertThat(fetchedProject.name()).isEqualTo("Atlas Migration");
     }
 
     @Test
     void should_return_dashboard_summary_counts() throws Exception {
+        seedProject("Alpha", "Jane Doe", ProjectStatus.ACTIVE, Instant.parse("2026-07-06T12:00:00Z"));
+        seedProject("Beta", "Jane Doe", ProjectStatus.ACTIVE, Instant.parse("2026-07-06T11:00:00Z"));
+        seedProject("Gamma", "Jane Doe", ProjectStatus.ACTIVE, Instant.parse("2026-07-06T10:00:00Z"));
+        seedProject("Delta", "Jane Doe", ProjectStatus.AT_RISK, Instant.parse("2026-07-06T09:00:00Z"));
+        seedProject("Epsilon", "Jane Doe", ProjectStatus.AT_RISK, Instant.parse("2026-07-06T08:00:00Z"));
+        seedProject("Zeta", "Jane Doe", ProjectStatus.BLOCKED, Instant.parse("2026-07-06T07:00:00Z"));
+
         ResponseEntity<String> response = restTemplate.getForEntity(
                 baseUrl() + "/api/dashboard/summary", String.class);
 
@@ -74,7 +95,11 @@ class ProjectAcceptanceTest {
                 baseUrl() + "/api/projects/11111111-1111-1111-1111-111111111111", String.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody()).contains("message");
+        assertThat(response.getBody()).contains("Project not found");
+    }
+
+    private void seedProject(String name, String ownerName, ProjectStatus status, Instant createdAt) {
+        projectRepository.saveAndFlush(new Project(null, name, ownerName, status, createdAt));
     }
 
     private String baseUrl() {

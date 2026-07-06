@@ -2,6 +2,7 @@ package com.edgarkirk.projectpulse.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
@@ -9,10 +10,13 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.time.OffsetDateTime;
+import java.time.Instant;
 import java.util.UUID;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @Entity
+@EntityListeners(AuditingEntityListener.class)
 @Table(name = "projects", uniqueConstraints = @UniqueConstraint(name = "uk_projects_name", columnNames = "name"))
 public class Project {
 
@@ -30,20 +34,21 @@ public class Project {
     @Column(nullable = false, length = 20)
     private ProjectStatus status;
 
+    @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     protected Project() {
     }
 
-    public Project(String name, String ownerName, ProjectStatus status, OffsetDateTime createdAt) {
+    public Project(String name, String ownerName, ProjectStatus status, Instant createdAt) {
         this.name = name;
         this.ownerName = ownerName;
         this.status = status;
         this.createdAt = createdAt;
     }
 
-    public Project(UUID id, String name, String ownerName, ProjectStatus status, OffsetDateTime createdAt) {
+    public Project(UUID id, String name, String ownerName, ProjectStatus status, Instant createdAt) {
         this.id = id;
         this.name = name;
         this.ownerName = ownerName;
@@ -79,11 +84,11 @@ public class Project {
         this.status = status;
     }
 
-    public OffsetDateTime getCreatedAt() {
+    public Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(OffsetDateTime createdAt) {
+    public void setCreatedAt(Instant createdAt) {
         this.createdAt = createdAt;
     }
 
