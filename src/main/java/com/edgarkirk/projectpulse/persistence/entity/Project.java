@@ -1,6 +1,8 @@
 package com.edgarkirk.projectpulse.persistence.entity;
 
+import java.time.Instant;
 import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.UUID;
 
 import com.edgarkirk.projectpulse.api.dto.request.ProjectStatus;
@@ -38,7 +40,7 @@ public class Project {
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    private OffsetDateTime createdAt;
+    private Instant createdAt;
 
     protected Project() {
     }
@@ -76,11 +78,11 @@ public class Project {
     }
 
     public OffsetDateTime getCreatedAt() {
-        return createdAt;
+        return createdAt == null ? null : createdAt.atOffset(ZoneOffset.UTC);
     }
 
     public void setCreatedAt(OffsetDateTime createdAt) {
-        this.createdAt = createdAt;
+        this.createdAt = createdAt == null ? null : createdAt.toInstant();
     }
 
     @Override

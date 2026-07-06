@@ -1,5 +1,6 @@
 package com.edgarkirk.projectpulse.mapper;
 
+
 import org.springframework.stereotype.Component;
 
 import com.edgarkirk.projectpulse.api.dto.request.CreateProjectRequest;
@@ -11,8 +12,8 @@ public class ProjectMapper {
 
     public Project toEntity(CreateProjectRequest request) {
         var project = instantiateProject();
-        project.setName(request.name());
-        project.setOwnerName(request.ownerName());
+        project.setName(request.name().trim());
+        project.setOwnerName(request.ownerName().trim());
         project.setStatus(request.status());
         return project;
     }

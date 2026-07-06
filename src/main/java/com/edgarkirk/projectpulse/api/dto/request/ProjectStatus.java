@@ -27,6 +27,6 @@ public enum ProjectStatus {
                 return status;
             }
         }
-        throw new IllegalArgumentException("Unknown project status: " + value);
+        throw new IllegalArgumentException("status must be one of Active, At Risk, Blocked, On Hold");
     }
 }
