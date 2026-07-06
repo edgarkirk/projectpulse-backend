@@ -71,6 +71,7 @@ class ProjectRepositoryTest {
         assertThat(projectRepository.countByStatus(ProjectStatus.ON_HOLD)).isEqualTo(0L);
     }
 
+
     @Test
     void should_fail_when_duplicate_name_is_saved_exactly() {
         saveProject("Atlas Migration", ProjectStatus.ACTIVE);

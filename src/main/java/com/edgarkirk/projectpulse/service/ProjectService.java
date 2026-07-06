@@ -3,6 +3,7 @@ package com.edgarkirk.projectpulse.service;
 import com.edgarkirk.projectpulse.api.dto.request.CreateProjectRequest;
 import com.edgarkirk.projectpulse.api.dto.response.DashboardSummary;
 import com.edgarkirk.projectpulse.api.dto.response.ProjectResponse;
+import com.edgarkirk.projectpulse.domain.ProjectStatus;
 import com.edgarkirk.projectpulse.mapper.ProjectMapper;
 import com.edgarkirk.projectpulse.persistence.entity.Project;
 import com.edgarkirk.projectpulse.persistence.repository.ProjectRepository;
@@ -37,7 +38,7 @@ public class ProjectService {
 
         var project = projectMapper.toEntity(new CreateProjectRequest(name, ownerName, request.status()));
         try {
-            return projectMapper.toResponse(projectRepository.save(project));
+            return projectMapper.toResponse(projectRepository.saveAndFlush(project));
         } catch (DataIntegrityViolationException ex) {
             throw new DuplicateProjectNameException(name);
         }
@@ -57,10 +58,10 @@ public class ProjectService {
 
     public DashboardSummary getDashboardSummary() {
         long totalProjects = projectRepository.count();
-        long active = projectRepository.countByStatus(com.edgarkirk.projectpulse.domain.ProjectStatus.ACTIVE);
-        long atRisk = projectRepository.countByStatus(com.edgarkirk.projectpulse.domain.ProjectStatus.AT_RISK);
-        long blocked = projectRepository.countByStatus(com.edgarkirk.projectpulse.domain.ProjectStatus.BLOCKED);
-        long onHold = projectRepository.countByStatus(com.edgarkirk.projectpulse.domain.ProjectStatus.ON_HOLD);
+        long active = projectRepository.countByStatus(ProjectStatus.ACTIVE);
+        long atRisk = projectRepository.countByStatus(ProjectStatus.AT_RISK);
+        long blocked = projectRepository.countByStatus(ProjectStatus.BLOCKED);
+        long onHold = projectRepository.countByStatus(ProjectStatus.ON_HOLD);
         return new DashboardSummary(totalProjects, active, atRisk, blocked, onHold);
     }
 

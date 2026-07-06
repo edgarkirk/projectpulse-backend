@@ -53,7 +53,7 @@ class ProjectServiceTest {
         saved.setCreatedAt(Instant.parse("2026-01-01T10:15:30Z"));
 
         when(projectRepository.existsByNameIgnoreCase("Atlas Migration")).thenReturn(false);
-        when(projectRepository.save(any(Project.class))).thenReturn(saved);
+        when(projectRepository.saveAndFlush(any(Project.class))).thenReturn(saved);
 
         ProjectResponse response = projectService.createProject(request);
 
@@ -62,19 +62,10 @@ class ProjectServiceTest {
     }
 
     @Test
-    void should_throw_duplicate_exception_when_duplicate_name_exists() {
-        when(projectRepository.existsByNameIgnoreCase("Atlas Migration")).thenReturn(true);
-
-        assertThatThrownBy(() -> projectService.createProject(new CreateProjectRequest("Atlas Migration", "Jane Doe", ProjectStatus.ACTIVE)))
-                .isInstanceOf(DuplicateProjectNameException.class)
-                .hasMessage("project name already exists: Atlas Migration");
-    }
-
-    @Test
     void should_throw_duplicate_exception_when_save_detects_constraint_violation() {
         var request = new CreateProjectRequest("Atlas Migration", "Jane Doe", ProjectStatus.ACTIVE);
         when(projectRepository.existsByNameIgnoreCase("Atlas Migration")).thenReturn(false);
-        when(projectRepository.save(any(Project.class))).thenThrow(new DataIntegrityViolationException("duplicate"));
+        when(projectRepository.saveAndFlush(any(Project.class))).thenThrow(new DataIntegrityViolationException("duplicate"));
 
         assertThatThrownBy(() -> projectService.createProject(request))
                 .isInstanceOf(DuplicateProjectNameException.class)

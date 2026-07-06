@@ -13,7 +13,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -120,9 +124,13 @@ class ProjectAcceptanceTest {
 
     @Test
     void should_return_bad_request_when_status_is_invalid() {
-        ResponseEntity<ErrorResponse> response = restTemplate.postForEntity(url("/api/projects"), """
+        var headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        var request = new HttpEntity<>("""
                 {"name":"Atlas Migration","ownerName":"Jane Doe","status":"INVALID"}
-                """, ErrorResponse.class);
+                """, headers);
+
+        ResponseEntity<ErrorResponse> response = restTemplate.exchange(url("/api/projects"), HttpMethod.POST, request, ErrorResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isNotNull();
