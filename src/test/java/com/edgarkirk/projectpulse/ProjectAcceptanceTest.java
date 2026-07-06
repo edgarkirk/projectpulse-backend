@@ -5,7 +5,9 @@ import com.edgarkirk.projectpulse.api.dto.response.DashboardSummary;
 import com.edgarkirk.projectpulse.api.dto.response.ErrorResponse;
 import com.edgarkirk.projectpulse.api.dto.response.ProjectResponse;
 import com.edgarkirk.projectpulse.domain.ProjectStatus;
+import com.edgarkirk.projectpulse.persistence.repository.ProjectRepository;
 import java.net.URI;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,7 +27,15 @@ class ProjectAcceptanceTest {
     private int port;
 
     @Autowired
+    private ProjectRepository projectRepository;
+
+    @Autowired
     private TestRestTemplate restTemplate;
+
+    @BeforeEach
+    void setUp() {
+        projectRepository.deleteAll();
+    }
 
     @Test
     void should_create_and_retrieve_project() {
